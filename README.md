@@ -34,14 +34,14 @@ Make the Script Executable:
 
 Run the Script:
 
-    ./mount_nas_clear.sh
+    ./NAS-Mount-and-Clear.sh
 
 Usage
 Example Workflow:
 
   Start the script using the command:
 
-    ./mount_nas_clear.sh
+    ./NAS-Mount-and-Clear.sh
 
   Select a NAS share (e.g., Videos) from the list.
   Use the GUI to browse and locate the desired folder.
