@@ -23,14 +23,14 @@ Follow these steps to set up and run the script:
    git clone https://github.com/Dillrex/NAS-Mount-and-Clear.git
    cd NAS-Mount-and-Clear
 
-    Install Required Dependencies (for Ubuntu/Debian-based systems):
+Install Required Dependencies (for Ubuntu/Debian-based systems):
 
-sudo apt update
-sudo apt install smbclient zenity findutils
+    sudo apt update
+    sudo apt install smbclient zenity findutils
 
 Make the Script Executable:
 
-chmod +x mount_nas_clear.sh
+    chmod +x mount_nas_clear.sh
 
 Run the Script:
 
@@ -39,30 +39,30 @@ Run the Script:
 Usage
 Example Workflow:
 
-    Start the script using the command:
+  Start the script using the command:
 
     ./mount_nas_clear.sh
 
-    Select a NAS share (e.g., Videos) from the list.
-    Use the GUI to browse and locate the desired folder.
-    Choose cleanup options:
-        Delete all .mkv files.
-        Delete .mkv files older than a specified number of days.
-    Confirm your selection, and the script will perform the cleanup.
+  Select a NAS share (e.g., Videos) from the list.
+  Use the GUI to browse and locate the desired folder.
+  Choose cleanup options:
+      Delete all .mkv files.
+      Delete .mkv files older than a specified number of days.
+  Confirm your selection, and the script will perform the cleanup.
 
 Common Commands for Troubleshooting:
 
-    Check NAS Shares Manually:
+Check NAS Shares Manually:
 
-smbclient -L <NAS_IP_ADDRESS> -N
+    smbclient -L <NAS_IP_ADDRESS> -N
 
 Example:
 
-smbclient -L 10.0.0.2 -N
+    smbclient -L 10.0.0.2 -N
 
 Manually Mount a NAS Share:
 
-sudo mount -t cifs //<NAS_IP>/<SHARE_NAME> /mnt/<MOUNT_POINT> -o guest
+    sudo mount -t cifs //<NAS_IP>/<SHARE_NAME> /mnt/<MOUNT_POINT> -o guest
 
 Example:
 
