@@ -18,13 +18,11 @@ Ensure the following tools are installed on your system:
 - `findutils` (for searching and managing files)
 
 ### Install Dependencies on Ubuntu/Debian:
-```bash
-sudo apt update
-sudo apt install smbclient zenity findutils
 
-How to Use
+  'sudo apt update'
+  'sudo apt install smbclient zenity findutils'
 
-    Clone the Repository:
+Clone the Repository:
 
 git clone https://github.com/Dillrex/NAS-Mount-and-Clear.git
 cd NAS-Mount-and-Clear
@@ -41,7 +39,6 @@ Run the Script:
         Select a NAS share to mount.
         Navigate through folders to locate the folder of interest.
         Choose whether to delete all .mkv files or only those older than a certain number of days.
-
 Example Workflow
 
     Start the script.
