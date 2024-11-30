@@ -30,7 +30,7 @@ Install Required Dependencies (for Ubuntu/Debian-based systems):
 
 Make the Script Executable:
 
-    chmod +x mount_nas_clear.sh
+    chmod +x NAS-Mount-and-Clear.sh
 
 Run the Script:
 
