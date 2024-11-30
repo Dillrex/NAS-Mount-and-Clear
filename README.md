@@ -1,43 +1,60 @@
 # NAS Mount and Clear
 
-This script provides an easy-to-use GUI-based tool for mounting a NAS, navigating through its folders, and managing `.mkv` files. It offers options to delete `.mkv` files either completely or based on their age.
+A GUI-based Bash script designed for mounting NAS shares, navigating folders, and managing `.mkv` files. This tool simplifies managing files on your network storage by providing an intuitive interface for mounting NAS shares and performing cleanup tasks.
 
 ## Features
-- Detect and list NAS shares on the network.
-- Mount a selected NAS share using a simple GUI.
-- Navigate through folders in the mounted NAS.
-- Choose between:
-  - Deleting all `.mkv` files.
-  - Deleting `.mkv` files older than a specified number of days.
-- Ensure confirmation before performing irreversible actions.
+- **Auto-detect NAS Shares**: Lists available NAS shares on your network.
+- **Simple NAS Mounting**: Mount shares without requiring credentials (for public shares).
+- **Folder Navigation**: Use a GUI to browse through mounted NAS folders.
+- **File Cleanup**:
+  - Delete all `.mkv` files in a selected folder and its subfolders.
+  - Delete `.mkv` files older than a specified number of days.
 
-## How to Use
-1. Clone the repository to your local machine:
-   ```bash
-   git clone https://github.com/<your-username>/NAS-Mount-and-Clear.git
-   cd NAS-Mount-and-Clear
+## Prerequisites
+Ensure the following tools are installed on your system:
+- `bash` (default shell on Linux)
+- `zenity` (for GUI dialogs)
+- `smbclient` (for detecting and mounting SMB shares)
+- `findutils` (for searching and managing files)
 
-    Make the script executable:
+### Install Dependencies on Ubuntu/Debian:
+```bash
+sudo apt update
+sudo apt install smbclient zenity findutils
+
+How to Use
+
+    Clone the Repository:
+
+git clone https://github.com/Dillrex/NAS-Mount-and-Clear.git
+cd NAS-Mount-and-Clear
+
+Make the Script Executable:
 
 chmod +x mount_nas_clear.sh
 
-Run the script:
+Run the Script:
 
     ./mount_nas_clear.sh
 
-    Follow the GUI prompts to:
-        Mount a NAS share.
-        Navigate to the desired folder.
-        Manage .mkv files as needed.
+    Follow GUI Prompts:
+        Select a NAS share to mount.
+        Navigate through folders to locate the folder of interest.
+        Choose whether to delete all .mkv files or only those older than a certain number of days.
 
-Requirements
+Example Workflow
 
-    zenity
-    smbclient
-    findutils
-    bash
+    Start the script.
+    Select the NAS share (e.g., Videos).
+    Use the GUI to browse and locate the desired folder.
+    Choose cleanup options:
+        Delete all .mkv files.
+        Delete .mkv files older than a specified number of days.
+    Confirm your selection, and the script will perform the cleanup.
 
-Ensure these tools are installed on your system before using the script.
+Screenshots
+
+Include screenshots here if desired.
 License
 
 This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0).
@@ -48,7 +65,7 @@ You are free to:
 
 Under the following terms:
 
-    Attribution: You must give appropriate credit, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
+    Attribution: You must give appropriate credit, provide a link to the license, and indicate if changes were made.
     NonCommercial: You may not use the material for commercial purposes.
 
 The full license can be found at Creative Commons.
