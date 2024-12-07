@@ -1,107 +1,90 @@
 #!/bin/bash
 
-# Define the temporary output directory (use a valid directory you have write access to)
-tmp_dir="$HOME/tmp"
-mkdir -p "$tmp_dir"
+# Debugging file
+debug_log="$HOME/debug_log.txt"
+echo "Starting script..." > "$debug_log"
 
-# Function to mount NAS using CIFS (SMB) without credentials
+# Function to mount NAS using CIFS
 mount_nas() {
     local nas_ip="$1"
-    local mount_point="$HOME/mnt/$(basename "$nas_ip")"
+    local nas_share="$2"
+    local mount_point="$HOME/mnt/${nas_share}"
 
-    # Check if mount directory exists, if not, create it
+    echo "Mounting NAS Share //${nas_ip}/${nas_share}" >> "$debug_log"
+
     if [ ! -d "$mount_point" ]; then
         mkdir -p "$mount_point"
     fi
 
-    # Mount the NAS using CIFS (SMB) without credentials
-    sudo mount -t cifs "$nas_ip" "$mount_point" -o guest,uid=$(id -u),gid=$(id -g)
+    sudo mount -t cifs "//${nas_ip}/${nas_share}" "$mount_point" -o guest,uid=$(id -u),gid=$(id -g)
 
-    # Check if mount was successful
     if mount | grep -q "$mount_point"; then
-        zenity --info --text="NAS mounted successfully at $mount_point!"
+        echo "NAS mounted successfully at $mount_point" >> "$debug_log"
         echo "$mount_point"
     else
-        zenity --error --text="Failed to mount $nas_ip. Please check your network connection."
-        return 1
+        zenity --error --text="Failed to mount NAS share."
+        echo "Failed to mount NAS share //${nas_ip}/${nas_share}" >> "$debug_log"
+        exit 1
     fi
 }
 
-# Directly attempt to query the NAS at 10.0.0.2 using smbclient without credentials
+# Set NAS details
 nas_ip="10.0.0.2"
-# Run smbclient to list the shares with SMB3 forced and capture the output
-smbclient -L "$nas_ip" -N -m SMB3 2>"$tmp_dir/smbclient_error.log" >"$tmp_dir/smbclient_output.txt"
+nas_share="example_share" # Update to your share
 
-# Show the error log if there is any
-if [ -s "$tmp_dir/smbclient_error.log" ]; then
-    cat "$tmp_dir/smbclient_error.log"
-fi
+# Mount the share
+mount_point=$(mount_nas "$nas_ip" "$nas_share")
 
-# Show the raw smbclient output for debugging purposes
-cat "$tmp_dir/smbclient_output.txt"
-
-# Extract the share names (look for lines starting with "Disk" and ignore lines with "IPC$")
-nas_shares=$(grep -P '^\s+\S+\s+Disk' "$tmp_dir/smbclient_output.txt" | awk '{print $1}' | grep -v "^IPC$")
-
-# If no shares are found, show an error
-if [ -z "$nas_shares" ]; then
-    zenity --error --text="No shares found on NAS at $nas_ip."
-    exit 1
-fi
-
-# Let the user select a NAS share
-nas_share_choice=$(zenity --list --title="Select NAS Share to Mount" --column="NAS Shares" $nas_shares)
-
-# If no share is selected, exit
-if [ -z "$nas_share_choice" ]; then
-    zenity --error --text="No share selected. Exiting..."
-    exit 1
-fi
-
-# Mount the selected NAS share without credentials
-mount_point=$(mount_nas "//${nas_ip}/${nas_share_choice}")
-if [ -z "$mount_point" ]; then
-    exit 1
-fi
-
-# Let the user select the folder within the mounted NAS (i.e., recordings folder)
-recordings_folder=$(zenity --file-selection --directory --title="Select Folder to Delete MKVs From" --filename="$mount_point/recordings/")
-
-# Check if the user canceled the selection
+# Let the user select a folder
+recordings_folder=$(zenity --file-selection --directory --title="Select Folder to Delete MKVs From" --filename="$mount_point/")
 if [ -z "$recordings_folder" ]; then
     zenity --error --text="No folder selected. Exiting..."
+    echo "No folder selected." >> "$debug_log"
     exit 1
 fi
+echo "Folder selected: $recordings_folder" >> "$debug_log"
 
-# Let the user specify the action to perform (delete all or delete old ones)
-delete_action=$(zenity --list --title="Select Deletion Option" --column="Option" --radiolist --text="Choose what to delete:" \
-    --column="" --column="Action" TRUE "Delete All MKVs" FALSE "Delete MKVs Older Than X Days")
+# Ask the user for the deletion option
+delete_action=$(zenity --list --radiolist \
+    --title="Delete MKVs" \
+    --text="Choose an option:" \
+    --column="Select" --column="Action" \
+    TRUE "Delete All MKVs" FALSE "Delete MKVs Older Than X Days")
 
-# If user selects "Delete MKVs Older Than X Days", ask for the number of days
-if [ "$delete_action" == "Delete MKVs Older Than X Days" ]; then
-    days=$(zenity --entry --title="File Age" --text="Enter the number of days before files are considered old:" --entry-text="30")
+if [ -z "$delete_action" ]; then
+    zenity --error --text="No valid option selected. Exiting..."
+    echo "No valid option selected." >> "$debug_log"
+    exit 1
+fi
+echo "Delete action selected: $delete_action" >> "$debug_log"
 
-    # If no valid input, exit
+# If "Delete Older Than X Days" is selected, get the number of days
+if [[ "$delete_action" == "Delete MKVs Older Than X Days" ]]; then
+    days=$(zenity --entry --title="File Age" --text="Enter the number of days:" --entry-text="30")
     if [ -z "$days" ] || ! [[ "$days" =~ ^[0-9]+$ ]]; then
         zenity --error --text="Invalid number of days entered. Exiting..."
+        echo "Invalid days entered: $days" >> "$debug_log"
         exit 1
     fi
-    # Set the condition to delete `.mkv` files older than the entered days
     delete_condition="-mtime +$days"
+    echo "Delete condition set to: $delete_condition" >> "$debug_log"
 else
-    # If user selects "Delete All MKVs", don't apply any age filter
     delete_condition=""
+    echo "Delete All MKVs selected" >> "$debug_log"
 fi
 
-# Ask for confirmation before deletion
-confirmation=$(zenity --question --text="Are you sure you want to delete the MKV files in $recordings_folder? This action is irreversible." --ok-label="Yes" --cancel-label="No")
-
-# If the user confirms, run the function to delete the files
-if [ $? -eq 0 ]; then
-    # Loop through the selected folder and its subfolders and delete `.mkv` files based on the delete condition
-    find "$recordings_folder" -type f -name "*.mkv" $delete_condition -exec rm -f {} \;
-    zenity --info --text="Old MKV files have been successfully cleared from $recordings_folder and its subfolders!"
-else
+# Confirm deletion
+zenity --question --text="Are you sure you want to delete the MKV files in $recordings_folder? This action cannot be undone."
+if [ $? -ne 0 ]; then
     zenity --info --text="Operation cancelled."
+    echo "Operation cancelled by user." >> "$debug_log"
     exit 0
 fi
+
+# Execute the deletion
+echo "Executing deletion with condition: $delete_condition" >> "$debug_log"
+find "$recordings_folder" -type f -name "*.mkv" $delete_condition -exec rm -f {} \;
+
+# Notify completion
+zenity --info --text="Deletion completed successfully."
+echo "Deletion completed for folder: $recordings_folder" >> "$debug_log"
